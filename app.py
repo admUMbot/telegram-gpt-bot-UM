@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 
 load_dotenv()  # Подтягиваем переменные из .env
 
-TELEGRAM_TOKEN = os.getenv("7598167391:AAFj2Y-TqYXVosHsRUdndL13XCDYZhGsgGo")
-OPENAI_API_KEY = os.getenv("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")
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 openai.api_key = OPENAI_API_KEY
 bot = telegram.Bot(token=TELEGRAM_TOKEN)
