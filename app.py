@@ -34,3 +34,6 @@ def webhook():
 if __name__ == "__main__":
     # Локальный запуск
     app.run(host="0.0.0.0", port=5000, debug=True)
+@app.route("/")
+def index():
+    return "Бот запущен и работает ✅"
