@@ -22,7 +22,7 @@ def webhook():
 
     # Запрос к ChatGPT
     completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo"
+        model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": user_text}],
         temperature=0.7
     )
@@ -31,9 +31,11 @@ def webhook():
     bot.send_message(chat_id=chat_id, text=reply)
     return "ok"
 
-if __name__ == "__main__":
-    # Локальный запуск
-    app.run(host="0.0.0.0", port=5000, debug=True)
 @app.route("/")
 def index():
     return "Бот запущен и работает ✅"
+
+if __name__ == "__main__":
+    # Локальный запуск
+    app.run(host="0.0.0.0", port=5000, debug=True)
+
