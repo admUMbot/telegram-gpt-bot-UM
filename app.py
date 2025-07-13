@@ -22,7 +22,7 @@ def webhook():
 
     # Запрос к ChatGPT
     completion = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o",
         messages=[{"role": "user", "content": user_text}],
         temperature=0.7
     )
