@@ -1,41 +1,61 @@
-import os
+import os, time
 from flask import Flask, request
-import openai
+from openai import OpenAI               # новый SDK ≥1.0
 import telegram
 from dotenv import load_dotenv
 
-load_dotenv()  # Подтягиваем переменные из .env
+load_dotenv()
 
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+TG_TOKEN   = os.getenv("TELEGRAM_TOKEN")
+OPENAI_KEY = os.getenv("OPENAI_API_KEY")
+ASST_ID    = os.getenv("ASSISTANT_ID")
 
-openai.api_key = OPENAI_API_KEY
-bot = telegram.Bot(token=TELEGRAM_TOKEN)
+client = OpenAI(api_key=OPENAI_KEY)
+bot    = telegram.Bot(token=TG_TOKEN)
+app    = Flask(__name__)
 
-app = Flask(__name__)
-
-@app.route(f"/webhook/{TELEGRAM_TOKEN}", methods=["POST"])
+@app.route(f"/webhook/{TG_TOKEN}", methods=["POST"])
 def webhook():
-    update = telegram.Update.de_json(request.get_json(force=True), bot)
-    chat_id = update.message.chat.id
-    user_text = update.message.text or ""
+    update = telegram.Update.de_json(request.get_json(True), bot)
+    if update.message is None:
+        return "ok"
 
-    # Запрос к ChatGPT
-    completion = openai.ChatCompletion.create(
-        model="gpt-4o",
-        messages=[{"role": "user", "content": user_text}],
-        temperature=0.7
+    chat_id = update.message.chat.id
+    user    = update.message.text
+
+    # 1) создаём thread (разговор)
+    thread  = client.beta.threads.create()
+
+    # 2) кладём пользовательскую реплику
+    client.beta.threads.messages.create(
+        thread_id=thread.id,
+        role="user",
+        content=user
     )
 
-    reply = completion.choices[0].message.content.strip()
-    bot.send_message(chat_id=chat_id, text=reply)
+    # 3) запускаем ассистента «Ума»
+    run = client.beta.threads.runs.create(
+        thread_id=thread.id,
+        assistant_id=ASST_ID
+    )
+
+    # 4) ждём, пока run завершится
+    while True:
+        run = client.beta.threads.runs.retrieve(thread.id, run.id)
+        if run.status == "completed":
+            break
+        time.sleep(0.5)
+
+    # 5) берём последнее сообщение ассистента
+    messages = client.beta.threads.messages.list(thread_id=thread.id)
+    reply = messages.data[0].content[0].text.value.strip()
+
+    bot.send_message(chat_id, reply)
     return "ok"
 
 @app.route("/")
 def index():
-    return "Бот запущен и работает ✅"
+    return "Бот «Ума» запущен 🚀"
 
 if __name__ == "__main__":
-    # Локальный запуск
-    app.run(host="0.0.0.0", port=5000, debug=True)
-
+    app.run(host="0.0.0.0", port=5000)
