@@ -14,7 +14,7 @@ client = OpenAI(api_key=OPENAI_KEY)
 bot    = telegram.Bot(token=TG_TOKEN)
 app    = Flask(__name__)
 
-@app.route(f"/webhook/7598167391:AAFj2Y-TqYXVosHsRUdndL13XCDYZhGsgGo", methods=["POST"])
+@app.route(f"/webhook/{TELEGRAM_TOKEN}", methods=["POST"])
 def webhook():
     update = telegram.Update.de_json(request.get_json(True), bot)
     if update.message is None:
