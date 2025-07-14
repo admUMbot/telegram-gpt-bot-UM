@@ -2,7 +2,6 @@ import os
 import time
 from flask import Flask, request
 from openai import OpenAI
-import telegram
 from dotenv import load_dotenv
 
 # Загружаем переменные из .env
