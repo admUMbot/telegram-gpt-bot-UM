@@ -20,10 +20,12 @@ def chat():
         role="user",
         content=user_message
     )
+
     run = openai.beta.threads.runs.create(
         thread_id=thread.id,
         assistant_id=assistant_id
     )
+    print("🔁 Run ID:", run.id)
 
     import time
     while True:
@@ -35,7 +37,15 @@ def chat():
         time.sleep(1)
 
     messages = openai.beta.threads.messages.list(thread_id=thread.id)
-    reply = messages.data[0].content[0].text.value
+    print("🧠 Ответ от OpenAI:")
+    import pprint
+    pprint.pprint(messages.data)
+
+    try:
+        reply = messages.data[0].content[0].text.value
+    except Exception as e:
+        print("⚠️ Ошибка при извлечении текста:", e)
+        reply = "Извините, ассистент не смог ответить."
 
     return jsonify({"reply": reply})
 
@@ -43,8 +53,8 @@ def chat():
 def index():
     return send_from_directory("static", "index.html")
 
-import os
-port = int(os.environ.get("PORT", 5000))
-app.run(host="0.0.0.0", port=port)
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
 
 
